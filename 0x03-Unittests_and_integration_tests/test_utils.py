@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """ Parameterize a unit test"""
-from utils import access_nested_map
+from utils import access_nested_map, get_json
 import unittest
+from unittest.mock import MagicMock, Mock, patch
 from typing import Mapping, Sequence, Any
 from parameterized import parameterized
 
@@ -26,3 +27,17 @@ class TestAccessNestedMap(unittest.TestCase):
         """ test the exception"""
         with self.assertRaises(KeyError):
             access_nested_map(nested_map, path)
+
+    @parameterized.expand([
+        ("http://example.com", {"payload": True}),
+        ("http://holberton.io", {"payload": False})
+    ])
+    @patch('utils.requests.get')
+    def test__get_json(self, test_url: str,
+                       test_payload: Mapping, mocck) -> None:
+        req = MagicMock()
+        req.status_code = 200
+        req.json.return_value = test_payload
+        mocck.return_value = req.get(test_url)
+        result = get_json(test_url)
+        mocck.assert_called_once_with(test_url)
